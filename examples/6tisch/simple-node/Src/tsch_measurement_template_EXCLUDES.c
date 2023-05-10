@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, SICS Swedish ICT.
+ * Copyright (c) 2023, HS-Aalen
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,61 +27,22 @@
  * SUCH DAMAGE.
  *
  */
-/**
- * \file
- *         A RPL+TSCH node able to act as either a simple node (6ln),
- *         DAG Root (6dr) or DAG Root with security (6dr-sec)
- *         Press use button at startup to configure.
- *
- * \author Jonas Sachwitz <j.sachwitz@gmx.de>
- * \author Simon Duquennoy <simonduq@sics.se>
-*/
 
-#include "contiki.h"
-#include "sys/node-id.h"
-#include "sys/log.h"
-#include "net/ipv6/uip-ds6-route.h"
-#include "net/ipv6/uip-sr.h"
-#include "net/mac/tsch/tsch.h"
-#include "net/routing/routing.h"
+/**
+ * \author Jonas Sachwitz <j.sachwitz@gmx.de>
+ */
+
 #include "tsch_measurement_template_EXCLUDES.h"
 
-#define DEBUG DEBUG_PRINT
-#include "net/ipv6/uip-debug.h"
-
-/*---------------------------------------------------------------------------*/
-PROCESS(node_process, "RPL Node");
-AUTOSTART_PROCESSES(&node_process);
-
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(node_process, ev, data)
-{
-  int is_coordinator;
-
-  PROCESS_BEGIN();
-
-  is_coordinator = 1;
-
-#if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_Z1
-  is_coordinator = (node_id == 1);
-#endif
-
-  if(is_coordinator) {
-    NETSTACK_ROUTING.root_start();
-  }
-  NETSTACK_MAC.on();
-
- /* Application Start*/
-
- // get local asn every 10 seconds
-  static struct etimer et;
-  etimer_set(&et, CLOCK_SECOND * 10);
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    etimer_reset(&et);
-    print_current_asn();
-  }
-
-  PROCESS_END();
+// Function to get the actual ASN of the node 
+struct tsch_asn_t get_local_asn(void) {
+    return tsch_current_asn;
 }
-/*---------------------------------------------------------------------------*/
+
+// print the ASN of the node
+void print_current_asn(void) {
+    struct tsch_asn_t asn = get_local_asn();
+    printf("[INFO: TSCH-Measurement  ] {asn %02x.%08"PRIx32"}\n\r ", asn.ms1b, asn.ls4b);
+}
+
+

@@ -42,3 +42,6 @@ Release/*
 .xdchelp
 config/*
 .launches/*
+
+# Build folder
+build/

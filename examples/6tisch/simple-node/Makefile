@@ -7,6 +7,11 @@ CFLAGS += -g
 
 PLATFORMS_EXCLUDE = sky native
 
+# Added own files
+PROJECT_SOURCEFILES += tsch_measurement_template_EXCLUDES.c
+CFLAGS += -I${CONTIKI}/examples/6tisch/simple-node/Inc/
+SOURCEDIRS += ${CONTIKI}/examples/6tisch/simple-node/Src ${CONTIKI}/examples/6tisch/simple-node/Inc
+
 CONTIKI=../../..
 
  # force Orchestra from command line
