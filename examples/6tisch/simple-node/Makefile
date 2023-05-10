@@ -1,6 +1,10 @@
 CONTIKI_PROJECT = node
 all: $(CONTIKI_PROJECT)
 
+TARGET=simplelink
+BOARD=launchpad/cc26x2r1
+CFLAGS += -g
+
 PLATFORMS_EXCLUDE = sky native
 
 CONTIKI=../../..
