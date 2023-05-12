@@ -46,10 +46,10 @@
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 const leds_t leds_arch_leds[] = {
-  /* Red LED, AKA LED0 */
-  { .pin = Board_PIN_LED0, .negative_logic = false },
-  /* Green LED, AKA LED1 */
-  { .pin = Board_PIN_LED1, .negative_logic = false },
-};
+/* Red LED, AKA LED0 */
+{ .pin = Board_PIN_LED0, .negative_logic = false },
+                                  /* Green LED, AKA LED1 */
+                                  { .pin = Board_PIN_LED1, .negative_logic =
+                                            false }, };
 /*---------------------------------------------------------------------------*/
 /** @} */

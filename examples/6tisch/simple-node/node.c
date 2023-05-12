@@ -44,10 +44,18 @@
 #include "net/ipv6/uip-sr.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/routing/routing.h"
+
 #include "tsch_measurement_template_EXCLUDES.h"
+
+// Driver header file
+#include <ti/drivers/GPIO.h>
+ #include "Board.h"
+//#include "dev/leds.h"
 
 #define DEBUG DEBUG_PRINT
 #include "net/ipv6/uip-debug.h"
+
+#define TSCH_DEBUG_SLOT_END()
 
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "RPL Node");
@@ -71,17 +79,30 @@ PROCESS_THREAD(node_process, ev, data)
   }
   NETSTACK_MAC.on();
 
+
  /* Application Start*/
 
- // get local asn every 10 seconds
+  // One-time TI-DRIVERS Board initialization
+  Board_init();
+
+  // One-time init of GPIO driver
+  GPIO_init();
+
+ // get local asn every second
   static struct etimer et;
-  etimer_set(&et, CLOCK_SECOND * 10);
+  etimer_set(&et, CLOCK_SECOND);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     etimer_reset(&et);
     print_current_asn();
+
+    // Verwendung der TI-Treiber für GPIOS
+    GPIO_toggle(Board_GPIO_LED0);
+    //leds_toggle(LEDS_ALL) --> work only with hex, not with macro
+
   }
 
   PROCESS_END();
 }
+
 /*---------------------------------------------------------------------------*/

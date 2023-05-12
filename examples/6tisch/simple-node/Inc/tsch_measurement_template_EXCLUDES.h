@@ -44,9 +44,8 @@
 // Function to get the actual ASN of the node
 struct tsch_asn_t get_local_asn();
 
+// print current asn of Node
 void print_current_asn(void);
-
-
 
 
 #endif /* TSCH_MEASUREMENT_TEMPLATE_H_ */
