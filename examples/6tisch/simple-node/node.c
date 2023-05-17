@@ -44,6 +44,7 @@
 #include "net/ipv6/uip-sr.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/routing/routing.h"
+#include "net/mac/tsch/tsch-slot-operation.h"
 
 #include "tsch_measurement_template_EXCLUDES.h"
 
@@ -54,8 +55,6 @@
 
 #define DEBUG DEBUG_PRINT
 #include "net/ipv6/uip-debug.h"
-
-#define TSCH_DEBUG_SLOT_END()
 
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "RPL Node");
@@ -68,7 +67,10 @@ PROCESS_THREAD(node_process, ev, data)
 
   PROCESS_BEGIN();
 
-  is_coordinator = 1;
+  is_coordinator = 0;
+
+  // One-time init of GPIO driver
+   GPIO_init();
 
 #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_Z1
   is_coordinator = (node_id == 1);
@@ -83,24 +85,9 @@ PROCESS_THREAD(node_process, ev, data)
  /* Application Start*/
 
   // One-time TI-DRIVERS Board initialization
-  Board_init();
+  //Board_init();
 
-  // One-time init of GPIO driver
-  GPIO_init();
-
- // get local asn every second
-  static struct etimer et;
-  etimer_set(&et, CLOCK_SECOND);
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    etimer_reset(&et);
-    print_current_asn();
-
-    // Verwendung der TI-Treiber für GPIOS
-    GPIO_toggle(Board_GPIO_LED0);
-    //leds_toggle(LEDS_ALL) --> work only with hex, not with macro
-
-  }
+  //SET_LED0();
 
   PROCESS_END();
 }
