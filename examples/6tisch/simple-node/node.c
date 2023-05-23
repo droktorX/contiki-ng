@@ -67,7 +67,7 @@ PROCESS_THREAD(node_process, ev, data)
 
   PROCESS_BEGIN();
 
-  is_coordinator = 0;
+  is_coordinator = 1;
 
   // One-time init of GPIO driver
    GPIO_init();
