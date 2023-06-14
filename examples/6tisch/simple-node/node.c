@@ -59,9 +59,13 @@
 #define DEBUG DEBUG_PRINT
 #include "net/ipv6/uip-debug.h"
 
-// UDP connection
+// UDP connection 
 #define UDP_PORT 1234
 static struct simple_udp_connection udp_conn;
+
+// UDP connection Node A and Node B
+#define UDP_PORT_NODES 2345
+static struct simple_udp_connection udp_nodes_conn;
 
 // Callback function for UDP message received
 static void
@@ -87,8 +91,10 @@ AUTOSTART_PROCESSES(&node_process);
 PROCESS_THREAD(node_process, ev, data)
 {
   int is_coordinator;
+  int is_NodeA;
   PROCESS_BEGIN();
-  is_coordinator = 1;
+  is_coordinator = 0;
+  is_NodeA = 1;
 
   // One-time init of GPIO driver
    GPIO_init();
@@ -107,12 +113,12 @@ PROCESS_THREAD(node_process, ev, data)
 // Coordinator send UDP message every 10 ms with count to all nodes
 
   simple_udp_register(&udp_conn, UDP_PORT, NULL, UDP_PORT, udp_rx_callback);
-  char str[80];  // Buffer for UDP message
+  char str[80];  // Buffer for UDP messages
+
+  static struct etimer et;
+  etimer_set(&et, CLOCK_SECOND/10);
 
   if(is_coordinator) {
-      static struct etimer et;
-      etimer_set(&et, CLOCK_SECOND/100);
-
       while(1) {
           PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
           GPIO_write(Board_GPIO_LED1, Board_GPIO_LED_ON);
@@ -130,9 +136,22 @@ PROCESS_THREAD(node_process, ev, data)
           simple_udp_sendto(&udp_conn, str, strlen(str), &broadcast);
           printf("[INFO: TSCH-Measurement] {asn %02x.%08"PRIx32"} | Broadcast Message %lu\n\r ", asn.ms1b, asn.ls4b, (unsigned long) count);
           count +=1;
-
       }
-  }
+
+  } else if(is_NodeA) {
+
+    // Node A send UDP to IP address of Node B every second
+    simple_udp_register(&udp_nodes_conn, UDP_PORT_NODES, NULL, UDP_PORT_NODES, udp_rx_callback);
+
+    while(1) {
+          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+          etimer_reset(&et);
+
+          // destination IP address of Node B --> fe80::212:4b00:21a9:e601
+          uip_ipaddr_t dest_ipaddr = {{0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x12, 0x4b, 0x00, 0x21, 0xa9, 0xe6, 0x01}};
+          simple_udp_sendto(&udp_nodes_conn, "Hello Node B", strlen("Hello Node A"), &dest_ipaddr);
+      }
+  } else simple_udp_register(&udp_nodes_conn, UDP_PORT_NODES, NULL, UDP_PORT_NODES, udp_rx_callback);
 
 
   // One-time TI-DRIVERS Board initialization
