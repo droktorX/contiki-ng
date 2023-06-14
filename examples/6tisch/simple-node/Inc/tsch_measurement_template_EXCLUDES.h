@@ -48,10 +48,7 @@
 
 // Debugging Macro for Slot Start with TI drvier
 #define TSCH_DEBUG_SLOT_START() do { \
-    struct tsch_asn_t asn = get_local_asn(); \
-    if(asn.ls4b % 15) { \
-        GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON); \
-    } \
+    GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON); \
 } while(0)
 
 // Debugging Macro for Slot End with TI driver
