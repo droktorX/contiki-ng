@@ -63,6 +63,7 @@
 #define UDP_PORT 1234
 static struct simple_udp_connection udp_conn;
 
+// Callback function for UDP message received
 static void
 udp_rx_callback(struct simple_udp_connection *c,
        const uip_ipaddr_t *sender_addr,
@@ -72,8 +73,10 @@ udp_rx_callback(struct simple_udp_connection *c,
        const uint8_t *data,
        uint16_t datalen)
 {
+    GPIO_write(Board_GPIO_LED1, Board_GPIO_LED_ON);
     struct tsch_asn_t asn = get_local_asn();
     printf("[INFO: TSCH-Measurement] {asn %02x.%08"PRIx32"} Received: %.*s\n", asn.ms1b, asn.ls4b, datalen, (char *) data);
+    GPIO_write(Board_GPIO_LED1, Board_GPIO_LED_OFF);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -84,10 +87,8 @@ AUTOSTART_PROCESSES(&node_process);
 PROCESS_THREAD(node_process, ev, data)
 {
   int is_coordinator;
-
   PROCESS_BEGIN();
-
-  is_coordinator = 0;
+  is_coordinator = 1;
 
   // One-time init of GPIO driver
    GPIO_init();
@@ -96,21 +97,17 @@ PROCESS_THREAD(node_process, ev, data)
   is_coordinator = (node_id == 1);
 #endif
 
-
-
-  simple_udp_register(&udp_conn, UDP_PORT, NULL, UDP_PORT, udp_rx_callback);
-
   if(is_coordinator) {
     NETSTACK_ROUTING.root_start();
   }
   NETSTACK_MAC.on();
 
-
  /* Application Start*/
 
-// Coordinator send UDP message with count to all nodes
+// Coordinator send UDP message every 10 ms with count to all nodes
 
-  char str[80];
+  simple_udp_register(&udp_conn, UDP_PORT, NULL, UDP_PORT, udp_rx_callback);
+  char str[80];  // Buffer for UDP message
 
   if(is_coordinator) {
       static struct etimer et;
@@ -118,6 +115,7 @@ PROCESS_THREAD(node_process, ev, data)
 
       while(1) {
           PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+          GPIO_write(Board_GPIO_LED1, Board_GPIO_LED_ON);
           etimer_reset(&et);
 
           // Send UDP message to all nodes with count
@@ -125,11 +123,14 @@ PROCESS_THREAD(node_process, ev, data)
           uip_create_linklocal_allnodes_mcast(&broadcast);
           static uint32_t count = 0;
 
+          GPIO_write(Board_GPIO_LED1, Board_GPIO_LED_OFF);
+
           struct tsch_asn_t asn = get_local_asn();
           sprintf(str, "Message %lu\n\r", (unsigned long) count);
           simple_udp_sendto(&udp_conn, str, strlen(str), &broadcast);
           printf("[INFO: TSCH-Measurement] {asn %02x.%08"PRIx32"} | Broadcast Message %lu\n\r ", asn.ms1b, asn.ls4b, (unsigned long) count);
           count +=1;
+
       }
   }
 
