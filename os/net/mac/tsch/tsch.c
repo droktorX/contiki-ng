@@ -59,12 +59,21 @@
 #include "net/routing/routing.h"
 #include <inttypes.h>
 
+// Added
+#include "tsch_measurement_template_EXCLUDES.h"
+
 #if TSCH_WITH_SIXTOP
 #include "net/mac/tsch/sixtop/sixtop.h"
 #endif
 
 #if FRAME802154_VERSION < FRAME802154_IEEE802154_2015
 #error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154_2015
+#endif
+
+// Added
+#if defined(NODEB)
+    // link address from Node A
+    static linkaddr_t timeSource = {{0x00, 0x12, 0x4b, 0x00, 0x25, 0xb6, 0xeb, 0x3c}};
 #endif
 
 /* Log configuration */
@@ -270,7 +279,11 @@ resynchronize(const linkaddr_t *original_time_source_addr)
     LOG_WARN_LLADDR(&last_eb_nbr_addr);
     LOG_WARN_("\n");
     /* We simply pick the last neighbor we receiver sync information from */
-    tsch_queue_update_time_source(&last_eb_nbr_addr);
+    #if defined(NODEB)
+        tsch_queue_update_time_source(&timeSource);
+    #else
+        tsch_queue_update_time_source(&last_eb_nbr_addr);
+    #endif
     tsch_join_priority = last_eb_nbr_jp + 1;
     linkaddr_copy(&last_eb_nbr_addr, &linkaddr_null);
     /* Try to get in sync ASAP */
@@ -722,7 +735,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     n = tsch_queue_add_nbr((linkaddr_t *)&frame.src_addr);
 
     if(n != NULL) {
+      #if defined(NODEB)
+        tsch_queue_update_time_source(&timeSource);
+      #else
       tsch_queue_update_time_source((linkaddr_t *)&frame.src_addr);
+      #endif
 
       /* Set PANID */
       frame802154_set_pan_id(frame.src_pid);

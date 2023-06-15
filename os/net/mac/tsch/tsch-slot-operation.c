@@ -57,6 +57,7 @@
 //Added
 #include "tsch_measurement_template_EXCLUDES.h"
 #include "sys/log.h"
+
 /* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH
  * timeslot events */
 #ifndef TSCH_DEBUG_INIT

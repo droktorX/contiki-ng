@@ -46,6 +46,9 @@
  #include "Board.h"
 #include "dev/leds.h"
 
+// define necessary, if Node A is Time Source from Node B
+#define NODEB
+
 // Debugging Macro for Slot Start with TI drvier
 #define TSCH_DEBUG_SLOT_START() do { \
     GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON); \
